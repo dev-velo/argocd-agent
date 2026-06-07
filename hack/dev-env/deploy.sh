@@ -60,7 +60,11 @@ deploy_principal() {
 		)
 		sed -i'' \
 			-e "s/  principal.allowed-namespaces:.*/  principal.allowed-namespaces: \"agent-*\"/" \
+			-e "s/  principal.namespace:.*/  principal.namespace: \"${ARGOCD_PRINCIPAL_NAMESPACE}\"/" \
 			principal-params-cm.yaml
+		sed -i'' \
+			-e "s/  namespace: .*/  namespace: ${ARGOCD_PRINCIPAL_NAMESPACE}/" \
+			principal-rolebinding.yaml principal-clusterrolebinding.yaml
 		kustomize build . | kubectl --context ${ARGOCD_AGENT_PRINCIPAL_CONTEXT} -n ${ARGOCD_PRINCIPAL_NAMESPACE} apply -f -
 		kubectl --context ${ARGOCD_AGENT_PRINCIPAL_CONTEXT} -n ${ARGOCD_PRINCIPAL_NAMESPACE} rollout restart deployment argocd-agent-principal
 	)
@@ -76,8 +80,12 @@ deploy_agent_managed() {
 		sed -i'' \
 		        -e "s/  agent.mode:.*/  agent.mode: \"managed\"/" \
 			-e "s/  agent.creds:.*/  agent.creds: \"mtls:any\"/" \
+			-e "s/  agent.namespace:.*/  agent.namespace: \"${ARGOCD_MANAGED_NAMESPACE}\"/" \
 			-e "s/  agent.server.address:.*/  agent.server.address: \"$principal_addr\"/" \
 			agent-params-cm.yaml
+		sed -i'' \
+			-e "s/  namespace: .*/  namespace: ${ARGOCD_MANAGED_NAMESPACE}/" \
+			agent-rolebinding.yaml agent-clusterrolebinding.yaml
 		kustomize build . | kubectl --context ${ARGOCD_AGENT_MANAGED_CONTEXT} -n ${ARGOCD_MANAGED_NAMESPACE} apply -f -
 	)
 }
@@ -92,8 +100,12 @@ deploy_agent_autonomous() {
 		sed -i'' \
 		        -e "s/  agent.mode:.*/  agent.mode: \"autonomous\"/" \
 			-e "s/  agent.creds:.*/  agent.creds: \"mtls:any\"/" \
+			-e "s/  agent.namespace:.*/  agent.namespace: \"${ARGOCD_AUTONOMOUS_NAMESPACE}\"/" \
 			-e "s/  agent.server.address:.*/  agent.server.address: \"$principal_addr\"/" \
 			agent-params-cm.yaml
+		sed -i'' \
+			-e "s/  namespace: .*/  namespace: ${ARGOCD_AUTONOMOUS_NAMESPACE}/" \
+			agent-rolebinding.yaml agent-clusterrolebinding.yaml
 		kustomize build . | kubectl --context ${ARGOCD_AGENT_AUTONOMOUS_CONTEXT} -n ${ARGOCD_AUTONOMOUS_NAMESPACE} apply -f -
 	)
 }
